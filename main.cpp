@@ -135,7 +135,7 @@ class TreeMap
             }
         }
         siz += 1;
-        cerr << "inserted" << endl;
+        cerr << "inserted, the root is now " << root->key << endl;
     }
 
     /*!
@@ -153,7 +153,8 @@ class TreeMap
      */
     mapped_type& operator[](const key_type& key)
     {
-        throw std::runtime_error("TODO: operator[]");
+        /* Node<key_type, mapped_type> *closest = findClosest(key);
+        if (closest->key == key) */
     }
 
     /*!
@@ -161,14 +162,26 @@ class TreeMap
      */
     const mapped_type& value(const key_type& key) const
     {
-        throw std::runtime_error("TODO: value");
+        cerr << "value" << endl;
+        Node<key_type, mapped_type> *closest = findClosest(key);
+        if (closest->key == key)
+            return closest->value;
+        else
+            throw std::runtime_error("element does not exist");
     }
 
     /*!
      * zwraca informacje, czy istnieje w slowniku podany klucz
      */
     bool contains(const key_type& key) const {
-        throw std::runtime_error("TODO: contains");
+        cerr << "contains " << key << endl;
+        Node<key_type, mapped_type> *closest = findClosest(key);
+        if (closest)
+            cerr << closest->key << endl;
+        if (closest && closest->key == key)
+            return true;
+        else
+            return false;
     }
 
     /*!
@@ -209,27 +222,33 @@ private:
     /*!
      * Zwraca wskaźnik na element o podanym kluczu, lub najblizszy mu
      */
-    Node<key_type, mapped_type>* findClosest(key_type key) {
+    Node<key_type, mapped_type>* findClosest(key_type key) const {
         cerr << "find" << endl;
-        Node<key_type, mapped_type> *currentRoot = this->root;
-        while (1) {
-            if (key <= currentRoot->key) {
-                if (currentRoot->left) {
-                    currentRoot = currentRoot->left; 
+        if (isEmpty()) {
+            cerr << "empty" << endl;
+            return nullptr;
+        } else {
+            Node<key_type, mapped_type> *currentRoot = this->root;
+            cerr << currentRoot->key << endl;
+            while (1) {
+                if (key < currentRoot->key) {
+                    if (currentRoot->left) {
+                        currentRoot = currentRoot->left; 
+                    } else {
+                         break;
+                    }
+                    
                 } else {
-                   break;
-                }
-                 
-            } else {
-                if(currentRoot->right) {
-                    currentRoot = currentRoot->right;  
-                } else {
-                    break;
+                    if(currentRoot->right) {
+                        currentRoot = currentRoot->right;  
+                    } else {
+                        break;
+                    }
                 }
             }
+            cerr << "found" << endl;
+            return currentRoot;
         }
-        cerr << "found" << endl;
-        return currentRoot;
     }
     void rotateLeft(Node<key_type, mapped_type>* el) {
         cerr << "rotating left" << endl;
