@@ -1,6 +1,8 @@
 #include <iostream>
 #include <chrono>
 #include <utility>
+#include <vector>
+#include <map>
 
 using namespace std;
 
@@ -38,7 +40,7 @@ public:
         auto result = elapsed();
         if (m_print)
         {
-            // std::cerr << "Czas: " << result << "\n";
+            std::cerr << "Czas: " << result << "\n";
         }
     }
 private:
@@ -84,11 +86,9 @@ class TreeMap
     TreeMap() {
         root = nullptr;
         siz = 0;
-        cerr << "created" << endl;
     }
     ~TreeMap() {
         eraseAll(this->root);
-        cerr << "deleted" << endl;
     }
 
     void eraseAll(Node<key_type, mapped_type> *cur) {
@@ -104,7 +104,6 @@ class TreeMap
      */
     bool isEmpty() const
     {
-        cerr << "isEmpty" << endl;
         return this->root == nullptr;
     }
 
@@ -112,7 +111,6 @@ class TreeMap
      * dodaje wpis do slownika
      */
     void insert(const key_type& key, const mapped_type &value) {
-        cerr << "inserting " << key << endl;
         if (isEmpty()) {
             root = new Node<key_type, mapped_type> (key, value);
             siz += 1;
@@ -121,7 +119,7 @@ class TreeMap
             if (this->root->key == key) {
                 this->root->value = value;
             } else {
-                Node<key_type, mapped_type> *newNode = new Node<key_type, mapped_type> (key, value, nullptr, nullptr, nullptr);
+                Node<key_type, mapped_type> *newNode = new Node<key_type, mapped_type> (key, value);
                 Node<key_type, mapped_type> *temp = this->root;
                 root = newNode;
                 if (key < this->root->key) {
@@ -142,7 +140,6 @@ class TreeMap
                 siz += 1;
             }
         }
-        cerr << "inserted, the root is now " << root->key << " and the size: " << siz << endl;
     }
 
     /*!
@@ -161,8 +158,8 @@ class TreeMap
     mapped_type& operator[](const key_type& key)
     {
         splay(key);
-        if (!root || root && root->key != key)
-            insert(key, 0);
+        if (isEmpty() || !isEmpty() && root->key != key)
+            insert(key, (mapped_type)0);
         return root->value;
     }
 
@@ -171,9 +168,8 @@ class TreeMap
      */
     const mapped_type& value(const key_type& key)
     {
-        cerr << "value" << endl;
         splay(key);
-        if (root && root->key == key)
+        if (!isEmpty() && root->key == key)
             return root->value;
         else
             throw std::runtime_error("element does not exist");
@@ -183,9 +179,8 @@ class TreeMap
      * zwraca informacje, czy istnieje w slowniku podany klucz
      */
     bool contains(const key_type& key) {
-        cerr << "contains " << key << endl;
         splay(key);
-        if (root && root->key == key)
+        if (!isEmpty() && root->key == key)
             return true;
         else
             return false;
@@ -197,68 +192,55 @@ class TreeMap
     size_t size() const {
         return siz;
     }
+
 private:
-    Node<KeyType, ValueType> *root;
+    Node<key_type, mapped_type> *root;
     size_t siz;
+
     void splay(key_type key) {
-        cerr << "splay " << key << endl;
-        /* if (root)
-            cerr << "root is " << root->key << endl; */
         Node<key_type, mapped_type> *el = this->findClosest(key);
 
         while (el != this->root) {
-            cerr << "at " << el->key << endl;
-            cerr << "parent " << el->parent->key;
             if (el->parent == this->root) {
-                cerr << "child of root" << endl;
                 if (el->parent->right && el == el->parent->right) {
-                    cerr << "will rotate left" << endl;
                     this->rotateLeft(el);
                 } else {
-                    cerr << "will rotate right" << endl;
                     this->rotateRight(el);
                 }
             } else if (el->parent->left && el->parent->parent->right 
             && el == el->parent->left && el->parent->parent->right == el->parent ) {
-                cerr << "left right case" << endl;
                 this->rotateRight(el);
                 this->rotateLeft(el);
             } else if (el->parent->right && el->parent->parent->left 
             && el == el->parent->right && el->parent->parent->left == el->parent) {
-                cerr << "right left case" << endl;
                 this->rotateLeft(el);
                 this->rotateRight(el);
             } else if (el->parent->left && el->parent->parent->left 
             && el == el->parent->left && el->parent->parent->left == el->parent) { 
-                cerr << "left left case" << endl;
                 this->rotateRight(el->parent);
                 this->rotateRight(el);
             } else {
-                cerr << "right right case" << endl;
                 this->rotateLeft(el->parent);
                 this->rotateLeft(el);
             }
         }
     }
+
     /*!
      * Zwraca wskaźnik na element o podanym kluczu, lub najblizszy mu
      */
     Node<key_type, mapped_type>* findClosest(key_type key) const {
-        cerr << "find" << endl;
         if (isEmpty()) {
-            cerr << "empty" << endl;
             return nullptr;
         } else {
             Node<key_type, mapped_type> *currentRoot = this->root;
             while (1) {
-                // cerr << currentRoot->key << endl;
                 if (key < currentRoot->key) {
                     if (currentRoot->left) {
                         currentRoot = currentRoot->left; 
                     } else {
                          break;
-                    }
-                    
+                    }  
                 } else {
                     if(currentRoot->right) {
                         currentRoot = currentRoot->right;  
@@ -267,12 +249,11 @@ private:
                     }
                 }
             }
-            cerr << "found" << endl;
             return currentRoot;
         }
     }
+
     void rotateLeft(Node<key_type, mapped_type>* el) {
-        cerr << "rotating left" << endl;
         Node<key_type, mapped_type>* temp;
         if (el->parent == this->root) {
             temp = this->root;
@@ -303,11 +284,9 @@ private:
             el->left = temp;
             temp->parent = el;
         }
-        cerr << "rotated left" << endl;
     }
 
     void rotateRight(Node<key_type, mapped_type>* el) {
-        cerr << "rotating right" << endl;
         Node<key_type, mapped_type>* temp;
         if (el->parent == this->root) {
             temp = this->root;
@@ -338,7 +317,6 @@ private:
             el->right = temp;
             temp->parent = el;
         }
-        cerr << "rotated right" << endl;
     }
 };
 
@@ -346,10 +324,63 @@ private:
 
 #include "tests.h"
 
-int main()
+int main(int argc, char *argv[])
 {
     unit_test();
-    tadeusz_test(10);
+    ifstream fp;
+    fp.open("pan-tadeusz.txt");
+    if (!fp.is_open()) {
+        cerr << "Cannot open file.\n";
+    }
+    string word;
+    unsigned int counter = 0;
+    vector<pair<int, string> > words;
+    int nWords = stoi(argv[1]);
+    while (fp >> word && counter < nWords) {
+        words.push_back(make_pair(rand() % nWords, word));
+        ++counter;
+    }
+    fp.close();
 
+    cerr << "Inserting: \n";
+    cerr << "TreeMap: \n";
+     TreeMap<int, string> dict;
+    {
+        Benchmark<std::chrono::milliseconds> a(true);
+        for (int i = 0; i < nWords; ++i) {
+            dict.insert(words[i]);
+        }
+    }
+     cerr << "std::map: \n";
+    map<int, string> stdDict;
+    {
+        Benchmark<std::chrono::milliseconds> b(true);
+        for (int i = 0; i < nWords; ++i) {
+            stdDict.insert(words[i]);
+        }
+    } 
+    
+
+    cerr << "\nSearching: \n";
+    vector<int> randoms;
+    for (int i = 0; i < nWords; ++i) {
+        randoms.push_back(rand() % nWords);
+    }
+
+    cerr << "TreeMap: \n";
+    {
+        Benchmark<std::chrono::milliseconds> c(true);
+        for (int i = 0; i < nWords; ++i) {
+            dict.contains(i);
+        }
+    }
+
+    cerr << "std::map: \n";
+    {
+        Benchmark<std::chrono::milliseconds> d(true);
+        for (int i = 0; i < nWords; ++i) {
+            stdDict.count(i);
+        }
+    }
     return 0;
 }
