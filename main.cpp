@@ -84,11 +84,11 @@ class TreeMap
     TreeMap() {
         root = nullptr;
         siz = 0;
-        // cerr << "created" << endl;
+        cerr << "created" << endl;
     }
     ~TreeMap() {
         eraseAll(this->root);
-        // cerr << "deleted" << endl;
+        cerr << "deleted" << endl;
     }
 
     void eraseAll(Node<key_type, mapped_type> *cur) {
@@ -104,7 +104,7 @@ class TreeMap
      */
     bool isEmpty() const
     {
-        // cerr << "isEmpty" << endl;
+        cerr << "isEmpty" << endl;
         return this->root == nullptr;
     }
 
@@ -112,9 +112,10 @@ class TreeMap
      * dodaje wpis do slownika
      */
     void insert(const key_type& key, const mapped_type &value) {
-        // cerr << "inserting " << key << endl;
-        if (root == nullptr) {
+        cerr << "inserting " << key << endl;
+        if (isEmpty()) {
             root = new Node<key_type, mapped_type> (key, value);
+            siz += 1;
         } else {
             this->splay(key);
             if (this->root->key == key) {
@@ -138,10 +139,10 @@ class TreeMap
                     root->left = temp;
                     temp->parent = root;
                 }
+                siz += 1;
             }
         }
-        siz += 1;
-        // cerr << "inserted, the root is now " << root->key << endl;
+        cerr << "inserted, the root is now " << root->key << " and the size: " << siz << endl;
     }
 
     /*!
@@ -160,12 +161,9 @@ class TreeMap
     mapped_type& operator[](const key_type& key)
     {
         splay(key);
-        if (root && root->key == key)
-            return root->value;
-        else {
+        if (!root || root && root->key != key)
             insert(key, 0);
-            return root->value;
-        }
+        return root->value;
     }
 
     /*!
@@ -173,7 +171,7 @@ class TreeMap
      */
     const mapped_type& value(const key_type& key)
     {
-        // cerr << "value" << endl;
+        cerr << "value" << endl;
         splay(key);
         if (root && root->key == key)
             return root->value;
@@ -185,7 +183,7 @@ class TreeMap
      * zwraca informacje, czy istnieje w slowniku podany klucz
      */
     bool contains(const key_type& key) {
-        // cerr << "contains " << key << endl;
+        cerr << "contains " << key << endl;
         splay(key);
         if (root && root->key == key)
             return true;
@@ -204,9 +202,9 @@ private:
     size_t siz;
     void splay(key_type key) {
         cerr << "splay " << key << endl;
-        if (root)
-            cerr << "root is " << root->key << endl;
-        Node<key_type, mapped_type>* el = this->findClosest(key);
+        /* if (root)
+            cerr << "root is " << root->key << endl; */
+        Node<key_type, mapped_type> *el = this->findClosest(key);
 
         while (el != this->root) {
             cerr << "at " << el->key << endl;
@@ -246,9 +244,9 @@ private:
      * Zwraca wskaźnik na element o podanym kluczu, lub najblizszy mu
      */
     Node<key_type, mapped_type>* findClosest(key_type key) const {
-        // cerr << "find" << endl;
+        cerr << "find" << endl;
         if (isEmpty()) {
-            // cerr << "empty" << endl;
+            cerr << "empty" << endl;
             return nullptr;
         } else {
             Node<key_type, mapped_type> *currentRoot = this->root;
@@ -269,12 +267,12 @@ private:
                     }
                 }
             }
-            // cerr << "found" << endl;
+            cerr << "found" << endl;
             return currentRoot;
         }
     }
     void rotateLeft(Node<key_type, mapped_type>* el) {
-        // cerr << "rotating left" << endl;
+        cerr << "rotating left" << endl;
         Node<key_type, mapped_type>* temp;
         if (el->parent == this->root) {
             temp = this->root;
@@ -285,25 +283,31 @@ private:
             this->root->left = temp;
             temp->parent = this->root;
         } else if (el->parent == el->parent->parent->left) {
-            temp = el->parent->parent->left;
+            temp = el->parent;
             el->parent->parent->left = el;
             el->parent = temp->parent;
 
             temp->right = el->left;
+            if (el->left)
+                el->left->parent = temp;
             el->left = temp;
+            temp->parent = el;
         } else if (el->parent == el->parent->parent->right) {
-            temp = el->parent->parent->right;
+            temp = el->parent;
             el->parent->parent->right = el;
             el->parent = temp->parent;
 
             temp->right = el->left;
+            if (el->left)
+                el->left->parent = temp;
             el->left = temp;
+            temp->parent = el;
         }
-        // cerr << "rotated left" << endl;
+        cerr << "rotated left" << endl;
     }
 
     void rotateRight(Node<key_type, mapped_type>* el) {
-        // cerr << "rotating right" << endl;
+        cerr << "rotating right" << endl;
         Node<key_type, mapped_type>* temp;
         if (el->parent == this->root) {
             temp = this->root;
@@ -314,21 +318,27 @@ private:
             this->root->right = temp;
             temp->parent = this->root;
         } else if (el->parent == el->parent->parent->right) {
-            temp = el->parent->parent->right;
+            temp = el->parent;
             el->parent->parent->right = el;
             el->parent = temp->parent;
 
             temp->left = el->right;
+            if (el->right)
+                el->right->parent = temp;
             el->right = temp;
+            temp->parent = el;
         } else if (el->parent == el->parent->parent->left) {
-            temp = el->parent->parent->left;
+            temp = el->parent;
             el->parent->parent->left = el;
             el->parent = temp->parent;
 
             temp->left = el->right;
+            if (el->right)
+                el->right->parent = temp;
             el->right = temp;
+            temp->parent = el;
         }
-        // cerr << "rotated right" << endl;
+        cerr << "rotated right" << endl;
     }
 };
 
@@ -339,6 +349,7 @@ private:
 int main()
 {
     unit_test();
+    tadeusz_test(10);
 
     return 0;
 }
