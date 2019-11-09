@@ -23,17 +23,17 @@ void unit_test() {
     assert(dict.value(1) == 2);
 
     // operator []
-    //assert(dict[0] == 1);
-    //assert(dict[1] == 2);
+    assert(dict[0] == 1);
+    assert(dict[1] == 2);
 
     // operator [] tworzy nowy element
-    //dict[2] = 3;
-    //assert(dict.value(2) == 3);
-    //assert(dict.size() == 3);
+    dict[2] = 3;
+    assert(dict.value(2) == 3);
+    assert(dict.size() == 3);
 
 
     // nadpisanie wartosci dla istniejacego elementu
-    //dict.insert(2, 4);
-    //assert(dict.size() == 3);
-    //assert(dict.value(2) == 4);
+    dict.insert(2, 4);
+    assert(dict.size() == 3);
+    assert(dict.value(2) == 4);
 }

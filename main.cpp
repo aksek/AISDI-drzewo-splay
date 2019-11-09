@@ -38,7 +38,7 @@ public:
         auto result = elapsed();
         if (m_print)
         {
-            std::cerr << "Czas: " << result << "\n";
+            // std::cerr << "Czas: " << result << "\n";
         }
     }
 private:
@@ -84,11 +84,11 @@ class TreeMap
     TreeMap() {
         root = nullptr;
         siz = 0;
-        cerr << "created" << endl;
+        // cerr << "created" << endl;
     }
     ~TreeMap() {
         eraseAll(this->root);
-        cerr << "deleted" << endl;
+        // cerr << "deleted" << endl;
     }
 
     void eraseAll(Node<key_type, mapped_type> *cur) {
@@ -104,7 +104,7 @@ class TreeMap
      */
     bool isEmpty() const
     {
-        cerr << "isEmpty" << endl;
+        // cerr << "isEmpty" << endl;
         return this->root == nullptr;
     }
 
@@ -112,7 +112,7 @@ class TreeMap
      * dodaje wpis do slownika
      */
     void insert(const key_type& key, const mapped_type &value) {
-        cerr << "inserting " << key << endl;
+        // cerr << "inserting " << key << endl;
         if (root == nullptr) {
             root = new Node<key_type, mapped_type> (key, value);
         } else {
@@ -125,17 +125,23 @@ class TreeMap
                 root = newNode;
                 if (key < this->root->key) {
                     root->left = temp->left;
+                    if (root->left)
+                        root->left->parent = root;
                     temp->left = nullptr;
                     root->right = temp;
+                    temp->parent = root;
                 } else {
                     root->right = temp->right;
+                    if (root->right)
+                        root->right->parent = root;
                     temp->right = nullptr;
                     root->left = temp;
+                    temp->parent = root;
                 }
             }
         }
         siz += 1;
-        cerr << "inserted, the root is now " << root->key << endl;
+        // cerr << "inserted, the root is now " << root->key << endl;
     }
 
     /*!
@@ -153,19 +159,24 @@ class TreeMap
      */
     mapped_type& operator[](const key_type& key)
     {
-        /* Node<key_type, mapped_type> *closest = findClosest(key);
-        if (closest->key == key) */
+        splay(key);
+        if (root && root->key == key)
+            return root->value;
+        else {
+            insert(key, 0);
+            return root->value;
+        }
     }
 
     /*!
      * zwraca wartosc dla podanego klucza
      */
-    const mapped_type& value(const key_type& key) const
+    const mapped_type& value(const key_type& key)
     {
-        cerr << "value" << endl;
-        Node<key_type, mapped_type> *closest = findClosest(key);
-        if (closest->key == key)
-            return closest->value;
+        // cerr << "value" << endl;
+        splay(key);
+        if (root && root->key == key)
+            return root->value;
         else
             throw std::runtime_error("element does not exist");
     }
@@ -173,12 +184,10 @@ class TreeMap
     /*!
      * zwraca informacje, czy istnieje w slowniku podany klucz
      */
-    bool contains(const key_type& key) const {
-        cerr << "contains " << key << endl;
-        Node<key_type, mapped_type> *closest = findClosest(key);
-        if (closest)
-            cerr << closest->key << endl;
-        if (closest && closest->key == key)
+    bool contains(const key_type& key) {
+        // cerr << "contains " << key << endl;
+        splay(key);
+        if (root && root->key == key)
             return true;
         else
             return false;
@@ -195,25 +204,39 @@ private:
     size_t siz;
     void splay(key_type key) {
         cerr << "splay " << key << endl;
+        if (root)
+            cerr << "root is " << root->key << endl;
         Node<key_type, mapped_type>* el = this->findClosest(key);
 
         while (el != this->root) {
+            cerr << "at " << el->key << endl;
+            cerr << "parent " << el->parent->key;
             if (el->parent == this->root) {
-                if (el == el->parent->right) {
+                cerr << "child of root" << endl;
+                if (el->parent->right && el == el->parent->right) {
+                    cerr << "will rotate left" << endl;
                     this->rotateLeft(el);
                 } else {
+                    cerr << "will rotate right" << endl;
                     this->rotateRight(el);
                 }
-            } else if (el == el->parent->left && el->parent->parent->right == el->parent ) {
+            } else if (el->parent->left && el->parent->parent->right 
+            && el == el->parent->left && el->parent->parent->right == el->parent ) {
+                cerr << "left right case" << endl;
                 this->rotateRight(el);
                 this->rotateLeft(el);
-            } else if (el == el->parent->right && el->parent->parent->left == el->parent) {
+            } else if (el->parent->right && el->parent->parent->left 
+            && el == el->parent->right && el->parent->parent->left == el->parent) {
+                cerr << "right left case" << endl;
                 this->rotateLeft(el);
                 this->rotateRight(el);
-            } else if (el == el->parent->left && el->parent->parent->left == el->parent) { 
+            } else if (el->parent->left && el->parent->parent->left 
+            && el == el->parent->left && el->parent->parent->left == el->parent) { 
+                cerr << "left left case" << endl;
                 this->rotateRight(el->parent);
                 this->rotateRight(el);
             } else {
+                cerr << "right right case" << endl;
                 this->rotateLeft(el->parent);
                 this->rotateLeft(el);
             }
@@ -223,14 +246,14 @@ private:
      * Zwraca wskaźnik na element o podanym kluczu, lub najblizszy mu
      */
     Node<key_type, mapped_type>* findClosest(key_type key) const {
-        cerr << "find" << endl;
+        // cerr << "find" << endl;
         if (isEmpty()) {
-            cerr << "empty" << endl;
+            // cerr << "empty" << endl;
             return nullptr;
         } else {
             Node<key_type, mapped_type> *currentRoot = this->root;
-            cerr << currentRoot->key << endl;
             while (1) {
+                // cerr << currentRoot->key << endl;
                 if (key < currentRoot->key) {
                     if (currentRoot->left) {
                         currentRoot = currentRoot->left; 
@@ -246,17 +269,21 @@ private:
                     }
                 }
             }
-            cerr << "found" << endl;
+            // cerr << "found" << endl;
             return currentRoot;
         }
     }
     void rotateLeft(Node<key_type, mapped_type>* el) {
-        cerr << "rotating left" << endl;
+        // cerr << "rotating left" << endl;
         Node<key_type, mapped_type>* temp;
         if (el->parent == this->root) {
             temp = this->root;
-            this->root = el->parent;
+            this->root = el;
+            temp->right = el->left;
+            if (temp->right)
+                temp->right->parent = temp;
             this->root->left = temp;
+            temp->parent = this->root;
         } else if (el->parent == el->parent->parent->left) {
             temp = el->parent->parent->left;
             el->parent->parent->left = el;
@@ -272,16 +299,20 @@ private:
             temp->right = el->left;
             el->left = temp;
         }
-        cerr << "rotated left" << endl;
+        // cerr << "rotated left" << endl;
     }
 
     void rotateRight(Node<key_type, mapped_type>* el) {
-        cerr << "rotating right" << endl;
+        // cerr << "rotating right" << endl;
         Node<key_type, mapped_type>* temp;
         if (el->parent == this->root) {
             temp = this->root;
-            this->root = el->parent;
+            this->root = el;
+            temp->left = el->right;
+            if (temp->left)
+                temp->left->parent = temp;
             this->root->right = temp;
+            temp->parent = this->root;
         } else if (el->parent == el->parent->parent->right) {
             temp = el->parent->parent->right;
             el->parent->parent->right = el;
@@ -297,7 +328,7 @@ private:
             temp->left = el->right;
             el->right = temp;
         }
-        cerr << "rotated right" << endl;
+        // cerr << "rotated right" << endl;
     }
 };
 
