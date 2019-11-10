@@ -114,7 +114,7 @@ class TreeMap {
         try {
             newNode = new Node<key_type, mapped_type> (key, value);
         } catch(std::bad_alloc &ex) {
-            cerr << "Can not allocate memory for new Node.";
+            cerr << "Cannot allocate memory for new Node.";
             return;
         }
         if (this->isEmpty()) {
@@ -133,7 +133,7 @@ class TreeMap {
                         this->root->left->parent = this->root;
                     prevRoot->left = nullptr;
                     this->root->right = prevRoot;
-                    prevRoot->parent = root;
+                    prevRoot->parent = this->root;
                 } else {
                     this->root->right = prevRoot->right;
                     if (this->root->right)
@@ -239,113 +239,86 @@ private:
                     } else {
                          break;
                     }  
-                } else {
+                } else if (key > currentRoot->key) {
                     if(currentRoot->right) {
                         currentRoot = currentRoot->right;  
                     } else {
                         break;
                     }
-                }
+                } else 
+                    break;
             }
             return currentRoot;
         }
     }
 
-    // left rotation
-    void rotateLeft(Node<key_type, mapped_type>* const el) {
-        Node<key_type, mapped_type>* prevRoot;
-        prevRoot = this->root;
-        this->root = el;
-        prevRoot->right = this->root->left;
-        if (prevRoot->right) {
-            prevRoot->right->parent = prevRoot;
-        } 
-        this->root->left = prevRoot;
-        this->root->parent = prevRoot->parent;
-        prevRoot->parent = this->root; 
-    }
-    // right rotation
-    void rotateRight(Node<key_type, mapped_type>* const el) {
-        Node<key_type, mapped_type>* prevRoot;
-        prevRoot = this->root;
-        this->root = el;
-        prevRoot->left = this->root->right;
-        if (prevRoot->left) {
-            prevRoot->left->parent = prevRoot;
+    void rotateLeft(Node<key_type, mapped_type>* el) {
+        Node<key_type, mapped_type>* temp;
+        if (el->parent == this->root) {
+            temp = this->root;
+            this->root = el;
+            this->root->parent = nullptr;
+            temp->right = el->left;
+            if (temp->right)
+                temp->right->parent = temp;
+            this->root->left = temp;
+            temp->parent = this->root;
+        } else if (el->parent == el->parent->parent->left) {
+            temp = el->parent;
+            el->parent->parent->left = el;
+            el->parent = temp->parent;
+
+            temp->right = el->left;
+            if (el->left)
+                el->left->parent = temp;
+            el->left = temp;
+            temp->parent = el;
+        } else if (el->parent == el->parent->parent->right) {
+            temp = el->parent;
+            el->parent->parent->right = el;
+            el->parent = temp->parent;
+
+            temp->right = el->left;
+            if (el->left)
+                el->left->parent = temp;
+            el->left = temp;
+            temp->parent = el;
         }
-        this->root->right = prevRoot;
-        this->root->parent = prevRoot->parent;
-        prevRoot->parent = this->root;
     }
-    // void rotateLeft(Node<key_type, mapped_type>* el) {
-    //     cerr << "rotating left" << endl;
-    //     Node<key_type, mapped_type>* temp;
-    //     if (el->parent == this->root) {
-    //         temp = this->root;
-    //         this->root = el;
-    //         temp->right = el->left;
-    //         if (temp->right)
-    //             temp->right->parent = temp;
-    //         this->root->left = temp;
-    //         temp->parent = this->root;
-    //     } else if (el->parent == el->parent->parent->left) {
-    //         temp = el->parent;
-    //         el->parent->parent->left = el;
-    //         el->parent = temp->parent;
 
-    //         temp->right = el->left;
-    //         if (el->left)
-    //             el->left->parent = temp;
-    //         el->left = temp;
-    //         temp->parent = el;
-    //     } else if (el->parent == el->parent->parent->right) {
-    //         temp = el->parent;
-    //         el->parent->parent->right = el;
-    //         el->parent = temp->parent;
+    void rotateRight(Node<key_type, mapped_type>* el) {
+        Node<key_type, mapped_type>* temp;
+        if (el->parent == this->root) {
+            temp = this->root;
+            this->root = el;
+            this->root->parent = nullptr;
+            temp->left = el->right;
+            if (temp->left)
+                temp->left->parent = temp;
+            this->root->right = temp;
+            temp->parent = this->root;
+        } else if (el->parent == el->parent->parent->right) {
+            temp = el->parent;
+            el->parent->parent->right = el;
+            el->parent = temp->parent;
 
-    //         temp->right = el->left;
-    //         if (el->left)
-    //             el->left->parent = temp;
-    //         el->left = temp;
-    //         temp->parent = el;
-    //     }
-    //     cerr << "rotated left" << endl;
-    // }
+            temp->left = el->right;
+            if (el->right)
+                el->right->parent = temp;
+            el->right = temp;
+            temp->parent = el;
+        } else if (el->parent == el->parent->parent->left) {
+            temp = el->parent;
+            el->parent->parent->left = el;
+            el->parent = temp->parent;
 
-    // void rotateRight(Node<key_type, mapped_type>* el) {
-    //     cerr << "rotating right" << endl;
-    //     Node<key_type, mapped_type>* temp;
-    //     if (el->parent == this->root) {
-    //         temp = this->root;
-    //         this->root = el;
-    //         temp->left = el->right;
-    //         if (temp->left)
-    //             temp->left->parent = temp;
-    //         this->root->right = temp;
-    //         temp->parent = this->root;
-    //     } else if (el->parent == el->parent->parent->right) {
-    //         temp = el->parent;
-    //         el->parent->parent->right = el;
-    //         el->parent = temp->parent;
-
-    //         temp->left = el->right;
-    //         if (el->right)
-    //             el->right->parent = temp;
-    //         el->right = temp;
-    //         temp->parent = el;
-    //     } else if (el->parent == el->parent->parent->left) {
-    //         temp = el->parent;
-    //         el->parent->parent->left = el;
-    //         el->parent = temp->parent;
-
-    //         temp->left = el->right;
-    //         if (el->right)
-    //             el->right->parent = temp;
-    //         el->right = temp;
-    //         temp->parent = el;
-    //     }
-    //     cerr << "rotated right" << endl;
-    // }
+            temp->left = el->right;
+            if (el->right)
+                el->right->parent = temp;
+            el->right = temp;
+            temp->parent = el;
+        }
+    }
 };
 
 
@@ -377,7 +350,7 @@ int main(int argc, char *argv[])
         return 0; 
     }
     catch(...) {
-        cerr << "Can not read an argument.\n";
+        cerr << "Cannot read an argument.\n";
         return 0;
     }
     while (fp >> word && counter < nWords) {
