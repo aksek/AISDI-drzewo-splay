@@ -44,21 +44,21 @@ void unit_test() {
     assert(dict.value(2) == 4);
 }
 
-void tadeusz_test(int numberOfWords) {
+void tadeusz_test(const int &numberOfWords) {
     TreeMap<int, string> dict;
     ifstream fp;
     fp.open("pan-tadeusz.txt");
     if (!fp.is_open()) {
         cerr << "Cannot open file.\n";
+        return;
     }
     string word;
     unsigned int counter = 0;
-    int key;
+    int key = 0;
     while (fp >> word && counter < numberOfWords) {
         key = rand() % 100;
         dict.insert(key, word);
         ++counter;
     }
     fp.close();
-
 }
