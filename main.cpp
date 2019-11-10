@@ -3,6 +3,7 @@
 #include <utility>
 #include <vector>
 #include <map>
+#include <cmath>
 
 using namespace std;
 
@@ -45,7 +46,7 @@ public:
     }
 private:
     std::chrono::high_resolution_clock::time_point start;
-    bool m_print = true;
+    bool m_print;
 };
 
 
@@ -109,7 +110,6 @@ class TreeMap {
      * dodaje wpis do slownika
      */
     void insert(const key_type &key, const mapped_type &value) {
-        cerr << "inserting " << key << endl;
         Node<key_type, mapped_type> *newNode = nullptr;
         try {
             newNode = new Node<key_type, mapped_type> (key, value);
@@ -160,7 +160,7 @@ class TreeMap {
      * jezeli elementu nie ma w slowniku, dodaje go
      */
     mapped_type& operator[](const key_type &key) {
-        splay(key);
+        this->splay(key);
         if (this->isEmpty() || !this->isEmpty() && this->root->key != key)
             this->insert(key, (mapped_type)0);
         return root->value;
@@ -170,8 +170,8 @@ class TreeMap {
      * zwraca wartosc dla podanego klucza
      */
     const mapped_type& value(const key_type &key) {
-        splay(key);
-        if (!this->empty() && this->root->key == key)
+        this->splay(key);
+        if (!this->isEmpty() && this->root->key == key)
             return root->value;
         else
             throw std::runtime_error("element does not exist");
@@ -181,7 +181,7 @@ class TreeMap {
      * zwraca informacje, czy istnieje w slowniku podany klucz
      */
     bool contains(const key_type &key) {
-        splay(key);
+        this->splay(key);
         return this->root && this->root->key == key;
     }
 
@@ -263,7 +263,6 @@ private:
         this->root->left = prevRoot;
         this->root->parent = prevRoot->parent;
         prevRoot->parent = this->root; 
-        cerr << "rotated left" << endl;
     }
     // right rotation
     void rotateRight(Node<key_type, mapped_type>* const el) {
@@ -277,7 +276,6 @@ private:
         this->root->right = prevRoot;
         this->root->parent = prevRoot->parent;
         prevRoot->parent = this->root;
-        cerr << "rotated right" << endl;
     }
     // void rotateLeft(Node<key_type, mapped_type>* el) {
     //     cerr << "rotating left" << endl;
@@ -361,11 +359,27 @@ int main(int argc, char *argv[])
     fp.open("pan-tadeusz.txt");
     if (!fp.is_open()) {
         cerr << "Cannot open file.\n";
+        return 0;
     }
     string word;
-    unsigned int counter = 0;
+    int counter = 0;
     vector<pair<int, string> > words;
-    int nWords = stoi(argv[1]);
+    int nWords = 0;
+    try {
+        nWords = abs(stoi(argv[1]));
+    }
+    catch(std::invalid_argument &ex) {
+        cerr << "Invalid argument.\n";
+        return 0; 
+    }
+    catch(std::out_of_range &ex) {
+        cerr << "Out of range argument.\n";
+        return 0; 
+    }
+    catch(...) {
+        cerr << "Can not read an argument.\n";
+        return 0;
+    }
     while (fp >> word && counter < nWords) {
         words.push_back(make_pair(rand() % nWords, word));
         ++counter;
@@ -374,14 +388,14 @@ int main(int argc, char *argv[])
 
     cerr << "Inserting: \n";
     cerr << "TreeMap: \n";
-     TreeMap<int, string> dict;
+    TreeMap<int, string> dict;
     {
         Benchmark<std::chrono::milliseconds> a(true);
         for (int i = 0; i < nWords; ++i) {
             dict.insert(words[i]);
         }
     }
-     cerr << "std::map: \n";
+    cerr << "std::map: \n";
     map<int, string> stdDict;
     {
         Benchmark<std::chrono::milliseconds> b(true);
