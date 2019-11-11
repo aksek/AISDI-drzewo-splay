@@ -91,6 +91,37 @@ class TreeMap {
         this->eraseAll(this->root);
     }
 
+    void printLevel(Node<key_type, mapped_type> *curRoot, unsigned int level = 0) {  
+        if (!curRoot) {
+            return; 
+        }  
+        ++level;
+        printLevel(curRoot->right, level);
+        --level;  
+
+        for (unsigned int i = 0; i < 10 * level; ++i) {
+            std::cout << " ";
+        }
+        std::cout << curRoot->key << " [parent: ";
+        if (curRoot->parent) {
+            std::cout << curRoot->parent->key;
+        } else {
+            std::cout << "nullptr";
+        }
+        std::cout << "]\n";
+        
+        ++level;  
+        printLevel(curRoot->left, level);  
+        --level;
+    }  
+    
+    void printTree(const std::string &info) {  
+        std::cout << "--------------\n";
+        std::cout << info << std::endl;
+        printLevel(this->root);  
+        std::cout<<"\n--------------\n";
+    }  
+
     void eraseAll(Node<key_type, mapped_type> * const cur) {
         if (cur->left != nullptr)
             this->eraseAll(cur->left);
