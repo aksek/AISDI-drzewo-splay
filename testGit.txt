@@ -1,1 +1,0 @@
-set up connection stuff for normal work with git-lab
