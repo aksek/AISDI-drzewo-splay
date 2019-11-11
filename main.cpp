@@ -41,7 +41,7 @@ public:
         auto result = elapsed();
         if (m_print)
         {
-            std::cerr << "Czas: " << result << "\n";
+            std::cerr << "Time: " << result << "\n";
         }
     }
 private:
@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
         return 0; 
     }
     catch(std::out_of_range &ex) {
-        cerr << "Out of range argument.\n";
+        cerr << "Argument out of range argument.\n";
         return 0; 
     }
     catch(...) {
@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
     cerr << "TreeMap: \n";
     TreeMap<int, string> dict;
     {
-        Benchmark<std::chrono::milliseconds> a(true);
+        Benchmark<std::chrono::nanoseconds> a(true);
         for (int i = 0; i < nWords; ++i) {
             dict.insert(words[i]);
         }
@@ -371,7 +371,7 @@ int main(int argc, char *argv[])
     cerr << "std::map: \n";
     map<int, string> stdDict;
     {
-        Benchmark<std::chrono::milliseconds> b(true);
+        Benchmark<std::chrono::nanoseconds> b(true);
         for (int i = 0; i < nWords; ++i) {
             stdDict.insert(words[i]);
         }
@@ -386,7 +386,7 @@ int main(int argc, char *argv[])
 
     cerr << "TreeMap: \n";
     {
-        Benchmark<std::chrono::milliseconds> c(true);
+        Benchmark<std::chrono::nanoseconds> c(true);
         for (int i = 0; i < nWords; ++i) {
             dict.contains(i);
         }
@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
 
     cerr << "std::map: \n";
     {
-        Benchmark<std::chrono::milliseconds> d(true);
+        Benchmark<std::chrono::nanoseconds> d(true);
         for (int i = 0; i < nWords; ++i) {
             stdDict.count(i);
         }
