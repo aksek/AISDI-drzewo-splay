@@ -5,8 +5,6 @@
 #include <map>
 #include <cmath>
 
-using namespace std;
-
 /*!
  *  Narzedzie do zliczania czasu
  *
@@ -59,16 +57,23 @@ class TreeMap;
  */
 
 template<typename KeyType, typename ValueType>
-class Node {
-        KeyType key;
-        ValueType value;
-        Node *parent;
-        Node *left;
-        Node *right;   
-        friend class TreeMap<KeyType, ValueType>;    
-    public:
-        Node(const KeyType &key, const ValueType &value, Node *parent = nullptr, Node *left = nullptr, Node *right = nullptr) : 
-                key(key), value(value), parent(parent), left(left), right(right) {};
+class Node {  
+public:
+    Node(const KeyType &key, const ValueType &value, Node *parent = nullptr, Node *left = nullptr, Node *right = nullptr) : 
+        key(key), value(value), parent(parent), left(left), right(right) {};
+    inline bool isLeftChild() {
+        return this->parent ? this->parent->left == this : false;
+    }
+    inline bool isRightChild() {
+        return this->parent ? this->parent->right == this : false;
+    }
+private:
+    KeyType key;
+    ValueType value;
+    Node *parent;
+    Node *left;
+    Node *right;   
+    friend class TreeMap<KeyType, ValueType>;  
 };
 
 
@@ -78,13 +83,13 @@ class Node {
  */
 template<typename KeyType, typename ValueType>
 class TreeMap {
-  public:
+public:
     using key_type = KeyType;
     using mapped_type = ValueType;
     using value_type = std::pair<const key_type, mapped_type>;
 
 
-    TreeMap() : root(nullptr), siz(0) {};
+    TreeMap() : root(nullptr), size_(0) {};
     TreeMap(const TreeMap &rhs) = delete;
 	TreeMap& operator=(const TreeMap &rhs) = delete;
     ~TreeMap() {
@@ -114,12 +119,12 @@ class TreeMap {
         try {
             newNode = new Node<key_type, mapped_type> (key, value);
         } catch(std::bad_alloc &ex) {
-            cerr << "Cannot allocate memory for new Node.";
+            std::cerr << "Cannot allocate memory for new Node.";
             return;
         }
         if (this->isEmpty()) {
             this->root = newNode;
-            this->siz += 1;
+            this->size_++;
         } else {
             this->splay(key);
             if (this->root->key == key) {
@@ -142,7 +147,7 @@ class TreeMap {
                     this->root->left = prevRoot;
                     prevRoot->parent = this->root;
                 }
-                this->siz += 1;
+                this->size_ += 1;
             }
         }
     }
@@ -189,12 +194,12 @@ class TreeMap {
      * zwraca liczbe wpisow w slowniku
      */
     size_t size() const {
-        return this->siz;
+        return this->size_;
     }
 
 private:
     Node<key_type, mapped_type> *root;
-    size_t siz;
+    size_t size_;
     void splay(const key_type &key) {
         Node<key_type, mapped_type> *el = this->findClosest(key);
 
@@ -205,16 +210,13 @@ private:
                 } else {
                     this->rotateRight(el);
                 }
-            } else if (el->parent->left && el->parent->parent->right 
-            && el == el->parent->left && el->parent->parent->right == el->parent ) {
+            } else if (el == el->parent->left && el->parent->parent->right == el->parent ) {
                 this->rotateRight(el);
                 this->rotateLeft(el);
-            } else if (el->parent->right && el->parent->parent->left 
-            && el == el->parent->right && el->parent->parent->left == el->parent) {
+            } else if (el == el->parent->right && el->parent->parent->left == el->parent) {
                 this->rotateLeft(el);
                 this->rotateRight(el);
-            } else if (el->parent->left && el->parent->parent->left 
-            && el == el->parent->left && el->parent->parent->left == el->parent) { 
+            } else if (el == el->parent->left && el->parent->parent->left == el->parent) { 
                 this->rotateRight(el->parent);
                 this->rotateRight(el);
             } else {
@@ -263,21 +265,14 @@ private:
                 temp->right->parent = temp;
             this->root->left = temp;
             temp->parent = this->root;
-        } else if (el->parent == el->parent->parent->left) {
+        } else {
             temp = el->parent;
-            el->parent->parent->left = el;
+            if (el->parent->isLeftChild()) {
+                el->parent->parent->left = el;                
+            } else if (el->parent->isRightChild()) {
+                el->parent->parent->right = el;
+            }
             el->parent = temp->parent;
-
-            temp->right = el->left;
-            if (el->left)
-                el->left->parent = temp;
-            el->left = temp;
-            temp->parent = el;
-        } else if (el->parent == el->parent->parent->right) {
-            temp = el->parent;
-            el->parent->parent->right = el;
-            el->parent = temp->parent;
-
             temp->right = el->left;
             if (el->left)
                 el->left->parent = temp;
@@ -297,19 +292,13 @@ private:
                 temp->left->parent = temp;
             this->root->right = temp;
             temp->parent = this->root;
-        } else if (el->parent == el->parent->parent->right) {
+        } else {
             temp = el->parent;
-            el->parent->parent->right = el;
-            el->parent = temp->parent;
-
-            temp->left = el->right;
-            if (el->right)
-                el->right->parent = temp;
-            el->right = temp;
-            temp->parent = el;
-        } else if (el->parent == el->parent->parent->left) {
-            temp = el->parent;
-            el->parent->parent->left = el;
+            if (el->parent->isRightChild()) {
+                el->parent->parent->right = el;
+            } else if (el->parent->isLeftChild()) {
+                el->parent->parent->left = el;
+            }
             el->parent = temp->parent;
 
             temp->left = el->right;
@@ -325,13 +314,12 @@ private:
 
 #include "tests.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     unit_test();
     ifstream fp;
     fp.open("pan-tadeusz.txt");
     if (!fp.is_open()) {
-        cerr << "Cannot open file.\n";
+         std::cerr << "Cannot open file.\n";
         return 0;
     }
     string word;
@@ -342,15 +330,15 @@ int main(int argc, char *argv[])
         nWords = abs(stoi(argv[1]));
     }
     catch(std::invalid_argument &ex) {
-        cerr << "Invalid argument.\n";
+        std::cerr << "Invalid argument.\n";
         return 0; 
     }
     catch(std::out_of_range &ex) {
-        cerr << "Argument out of range argument.\n";
+        std::cerr << "Argument out of range.\n";
         return 0; 
     }
     catch(...) {
-        cerr << "Cannot read an argument.\n";
+        std::cerr << "Cannot read an argument.\n";
         return 0;
     }
     while (fp >> word && counter < nWords) {
@@ -359,8 +347,8 @@ int main(int argc, char *argv[])
     }
     fp.close();
 
-    cerr << "Inserting: \n";
-    cerr << "TreeMap: \n";
+    std::cerr << "Inserting: \n";
+    std::cerr << "TreeMap: \n";
     TreeMap<int, string> dict;
     {
         Benchmark<std::chrono::nanoseconds> a(true);
@@ -368,7 +356,7 @@ int main(int argc, char *argv[])
             dict.insert(words[i]);
         }
     }
-    cerr << "std::map: \n";
+    std::cerr << "std::map: \n";
     map<int, string> stdDict;
     {
         Benchmark<std::chrono::nanoseconds> b(true);
@@ -378,13 +366,13 @@ int main(int argc, char *argv[])
     } 
     
 
-    cerr << "\nSearching: \n";
+    std::cerr << "\nSearching: \n";
     vector<int> randoms;
     for (int i = 0; i < nWords; ++i) {
         randoms.push_back(rand() % nWords);
     }
 
-    cerr << "TreeMap: \n";
+    std::cerr << "TreeMap: \n";
     {
         Benchmark<std::chrono::nanoseconds> c(true);
         for (int i = 0; i < nWords; ++i) {
@@ -392,7 +380,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    cerr << "std::map: \n";
+    std::cerr << "std::map: \n";
     {
         Benchmark<std::chrono::nanoseconds> d(true);
         for (int i = 0; i < nWords; ++i) {
